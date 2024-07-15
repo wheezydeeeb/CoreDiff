@@ -16,9 +16,9 @@ class CTDataset(Dataset):
 
         if dataset in ['mayo_2016_sim', 'mayo_2016']:
             if dataset == 'mayo_2016_sim':
-                data_root = './data_preprocess/gen_data/mayo_2016_sim_npy'
+                data_root = '/kaggle/working/mayo_2016_sim_npy'
             elif dataset == 'mayo_2016':
-                data_root = './data_preprocess/gen_data/mayo_2016_npy'
+                data_root = '/kaggle/working/mayo_2016_npy'
                 
             patient_ids = [67, 96, 109, 143, 192, 286, 291, 310, 333, 506]
             if mode == 'train':
@@ -49,7 +49,7 @@ class CTDataset(Dataset):
             base_input = patient_lists
 
         elif dataset == 'mayo_2020':
-            data_root = './data_preprocess/gen_data/mayo_2020_npy'
+            data_root = '/kaggle/working/mayo_2020_npy'
             if dose == 10:
                 patient_ids = ['C052', 'C232', 'C016', 'C120', 'C050']
             elif dose == 25:
@@ -79,7 +79,7 @@ class CTDataset(Dataset):
 
 
         elif dataset == 'piglet':
-            data_root = './data_preprocess/gen_data/piglet_npy'
+            data_root = '/kaggle/working/piglet_npy'
 
             patient_list = sorted(glob(osp.join(data_root, 'piglet_target_' + '*_img.npy')))
             base_target = patient_list[1:len(patient_list) - 1]
@@ -99,7 +99,7 @@ class CTDataset(Dataset):
 
 
         elif dataset == 'phantom':
-            data_root = './data_preprocess/gen_data/xnat_npy'
+            data_root = '/kaggle/working/xnat_npy'
 
             patient_list = sorted(glob(osp.join(data_root, 'xnat_target' + '*_img.npy')))[9:21]
             base_target = patient_list[1:len(patient_list) - 1]
