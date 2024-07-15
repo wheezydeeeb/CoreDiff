@@ -14,6 +14,8 @@ class CTDataset(Dataset):
         self.context = context
         print(dataset)
 
+        base_input = []
+
         if dataset in ['mayo_2016_sim', 'mayo_2016']:
             if dataset == 'mayo_2016_sim':
                 data_root = '/kaggle/working/mayo_2016_sim_npy'
