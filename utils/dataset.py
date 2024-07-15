@@ -14,7 +14,8 @@ class CTDataset(Dataset):
         self.context = context
         print(dataset)
 
-        base_input, base_target = [], []
+        base_input = []
+        base_target = []
 
         if dataset in ['mayo_2016_sim', 'mayo_2016']:
             if dataset == 'mayo_2016_sim':
