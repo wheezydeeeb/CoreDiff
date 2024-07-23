@@ -4,7 +4,7 @@ from torch.nn import functional as F
 import torch
 import torchvision
 import argparse
-from tqdm.auto import tqdm
+import tqdm
 import copy
 from utils.measure import *
 from utils.loss_function import PerceptualLoss
@@ -128,7 +128,7 @@ class corediff(TrainTask):
         self.ema_model.eval()
 
         psnr, ssim, rmse = 0., 0., 0.
-        for low_dose, full_dose in tqdm(self.test_loader, desc='test'):
+        for low_dose, full_dose in tqdm.tqdm(self.test_loader, desc='test'):
             low_dose, full_dose = low_dose.cuda(), full_dose.cuda()
 
             gen_full_dose, direct_recons, imstep_imgs = self.ema_model.sample(
