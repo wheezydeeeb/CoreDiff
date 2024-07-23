@@ -1,7 +1,7 @@
 # This part builds heavily on https://github.com/Hzzone/DU-GAN.
 import torch
 import os.path as osp
-from tqdm.notebook import tqdm
+from tqdm.auto import tqdm
 import argparse
 import torch.distributed as dist
 

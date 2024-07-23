@@ -3,7 +3,7 @@ from torch.nn import functional as F
 import torch
 import torchvision
 import argparse
-from tqdm.notebook import tqdm
+from tqdm.auto import tqdm
 import copy
 from utils.measure import *
 from utils.loss_function import PerceptualLoss
