@@ -1,3 +1,4 @@
+import os
 import os.path as osp
 from torch.nn import functional as F
 import torch
@@ -99,7 +100,13 @@ class corediff(TrainTask):
 
         if opt.wandb:
             if n_iter == opt.resume_iter + 1:
-                wandb.init(project="your wandb project name")
+                api_key = os.getenv('WANDB_API_KEY')
+                if api_key:
+                    wandb.login(key=api_key)
+                    print(f"Logged into Weights & Biases successfully!")
+                else:
+                    print(f"WANDB_API_KEY not found. Please make sure it is set as a secret.")
+                wandb.init(project=opt.run_name)
 
         self.optimizer.step()
         self.optimizer.zero_grad()
