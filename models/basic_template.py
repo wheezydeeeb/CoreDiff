@@ -1,7 +1,7 @@
 # This part builds heavily on https://github.com/Hzzone/DU-GAN.
 import torch
 import os.path as osp
-import tqdm
+from tqdm.auto import tqdm
 import argparse
 import torch.distributed as dist
 
@@ -139,7 +139,8 @@ class TrainTask(object):
 
             # training routine
             loader = iter(self.train_loader)
-            for n_iter in tqdm.trange(opt.resume_iter + 1, opt.max_iter + 1, disable=(self.rank != 0)):
+            # for n_iter in tqdm.trange(opt.resume_iter + 1, opt.max_iter + 1, disable=(self.rank != 0)):
+            for n_iter in tqdm(range(opt.resume_iter + 1, opt.max_iter + 1)):
                 inputs = next(loader)
                 self.train(inputs, n_iter)
                 if n_iter % opt.save_freq == 0:
