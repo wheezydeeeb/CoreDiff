@@ -99,7 +99,6 @@ class corediff(TrainTask):
         loss.backward()
 
         if opt.wandb:
-            print("wand is true")
             if n_iter == opt.resume_iter + 1:
                 api_key = os.getenv('WANDB_API_KEY')
                 if api_key:
