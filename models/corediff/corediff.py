@@ -9,6 +9,7 @@ import copy
 from utils.measure import *
 from utils.loss_function import PerceptualLoss
 from utils.ema import EMA
+from kaggle_secrets import UserSecretsClient
 
 from models.basic_template import TrainTask
 from .corediff_wrapper import Network, WeightNet
@@ -100,9 +101,10 @@ class corediff(TrainTask):
 
         if opt.wandb:
             if n_iter == opt.resume_iter + 1:
-                api_key = os.getenv('WANDB_API_KEY')
-                if api_key:
-                    wandb.login(key=api_key)
+                user_secrets = UserSecretsClient()
+                wandb_api_key = user_secrets.get_secret("WANDB_API_KEY")
+                if wandb_api_key:
+                    wandb.login(key=wandb_api_key)
                     print(f"Logged into Weights & Biases successfully!")
                 else:
                     print(f"WANDB_API_KEY not found. Please make sure it is set as a secret.")
