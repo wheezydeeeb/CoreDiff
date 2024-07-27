@@ -133,7 +133,8 @@ class corediff(TrainTask):
         for low_dose, full_dose in tqdm.tqdm(self.test_loader, desc='test'):
             low_dose, full_dose = low_dose.cuda(), full_dose.cuda()
 
-            gen_full_dose, direct_recons, imstep_imgs = self.ema_model.sample(
+            # Use non-ema model for now
+            gen_full_dose, direct_recons, imstep_imgs = self.model.sample(
                 batch_size = low_dose.shape[0],
                 img = low_dose,
                 t = self.T,
@@ -163,7 +164,8 @@ class corediff(TrainTask):
         self.ema_model.eval()
         low_dose, full_dose = self.test_images
 
-        gen_full_dose, direct_recons, imstep_imgs = self.ema_model.sample(
+        # Use non-ema model for now
+        gen_full_dose, direct_recons, imstep_imgs = self.model.sample(
                 batch_size = low_dose.shape[0],
                 img = low_dose,
                 t = self.T,
