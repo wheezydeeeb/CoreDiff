@@ -134,7 +134,7 @@ class corediff(TrainTask):
             low_dose, full_dose = low_dose.cuda(), full_dose.cuda()
 
             # Use non-ema model for now
-            gen_full_dose, direct_recons, imstep_imgs = self.model.sample(
+            gen_full_dose, direct_recons, imstep_imgs = self.ema_model.sample(
                 batch_size = low_dose.shape[0],
                 img = low_dose,
                 t = self.T,
@@ -165,7 +165,7 @@ class corediff(TrainTask):
         low_dose, full_dose = self.test_images
 
         # Use non-ema model for now
-        gen_full_dose, direct_recons, imstep_imgs = self.model.sample(
+        gen_full_dose, direct_recons, imstep_imgs = self.ema_model.sample(
                 batch_size = low_dose.shape[0],
                 img = low_dose,
                 t = self.T,
