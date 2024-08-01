@@ -12,7 +12,7 @@ class CTDataset(Dataset):
     def __init__(self, dataset, mode, test_id=9, dose=5, context=True):
         self.mode = mode
         self.context = context
-        print(f"Dataset : {dataset}, Mode : {mode}")
+        print(f"Dataset : {dataset}  |  Mode : {mode}")
 
         base_input = []
         base_target = []
@@ -122,8 +122,7 @@ class CTDataset(Dataset):
 
         self.input = base_input
         self.target = base_target
-        print(len(self.input))
-        print(len(self.target))
+        print(f"Input Samples : {len(self.input)}  |  Target Samples : {len(self.target)}")
 
 
     def __getitem__(self, index):
