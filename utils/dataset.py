@@ -12,7 +12,7 @@ class CTDataset(Dataset):
     def __init__(self, dataset, mode, test_id=9, dose=5, context=True):
         self.mode = mode
         self.context = context
-        print(dataset)
+        print(f"Dataset : {dataset}, Mode : {mode}")
 
         base_input = []
         base_target = []
