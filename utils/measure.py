@@ -15,12 +15,13 @@ def compute_measure(y, pred, data_range : float = 1.0):    # Changed data_range 
 
 
 def compute_MSE(img1, img2):
-    return ((img1/1.0 - img2/1.0) ** 2).mean()
+    # return ((img1/1.0 - img2/1.0) ** 2).mean()
+    return F.mse_loss(img1, img2)
 
 
 def compute_RMSE(img1, img2):
-    img1 = img1 * 2000 / 255 - 1000
-    img2 = img2 * 2000 / 255 - 1000
+    # img1 = img1 * 2000 / 255 - 1000
+    # img2 = img2 * 2000 / 255 - 1000
     if type(img1) == torch.Tensor:
         return torch.sqrt(compute_MSE(img1, img2)).item()
     else:
