@@ -31,10 +31,10 @@ def compute_RMSE(img1, img2):
 def compute_PSNR(img1, img2, data_range):
     if type(img1) == torch.Tensor:
         mse_ = compute_MSE(img1, img2)
-        return 10 * torch.log10((data_range ** 2) / mse_).item()
+        return 10 * torch.log10((data_range * data_range) / mse_).item()
     else:
         mse_ = compute_MSE(img1, img2)
-        return 10 * np.log10((data_range ** 2) / mse_)
+        return 10 * np.log10((data_range * data_range) / mse_)
 
 
 def compute_SSIM(img1, img2, data_range, window_size=11, channel=1, size_average=True):
