@@ -7,7 +7,7 @@ from math import exp
 from torch.autograd import Variable
 
 
-def compute_measure(y, pred, data_range):
+def compute_measure(y, pred, data_range : float = 1.0):    # Changed data_range to be always float value 1.0
     psnr = compute_PSNR(pred, y, data_range)
     ssim = compute_SSIM(pred, y, data_range)
     rmse = compute_RMSE(pred, y)
