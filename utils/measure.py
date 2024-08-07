@@ -20,8 +20,8 @@ def compute_MSE(img1, img2):
 
 
 def compute_RMSE(img1, img2):
-    # img1 = img1 * 3000 / 255 - 1000
-    # img2 = img2 * 3000 / 255 - 1000
+    img1 = img1 * 2000 / 255 - 1000
+    img2 = img2 * 2000 / 255 - 1000
     if type(img1) == torch.Tensor:
         return torch.sqrt(compute_MSE(img1, img2)).item()
     else:
