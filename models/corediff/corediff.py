@@ -162,8 +162,8 @@ class corediff(TrainTask):
             # DEBUG STEP FOR IMAGE CHECKING
             full_dose_disp = torch.clip(full_dose * 3000 - 1000, -160, 240)
             gen_full_dose_disp = torch.clip(gen_full_dose * 3000 - 1000, -160, 240)
-            full_dose_disp = full_dose_disp.squeeze().numpy()
-            gen_full_dose_disp = gen_full_dose_disp.squeeze().numpy()
+            full_dose_disp = full_dose_disp.squeeze().cpu().numpy()
+            gen_full_dose_disp = gen_full_dose_disp.squeeze().cpu().numpy()
 
             fig, axes = plt.subplots(1, 2, figsize=(12, 6))
             axes[0].imshow(full_dose_disp, cmap='gray', vmin=-160, vmax=240)
