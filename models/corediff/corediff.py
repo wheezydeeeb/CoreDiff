@@ -147,7 +147,7 @@ class corediff(TrainTask):
             # gen_full_dose = self.transfer_calculate_window(gen_full_dose)
 
             # Debug step for measure compute size compatibility
-            print(f"{full_dose.max()} , {gen_full_dose.max()}, {full_dose.min()} , {gen_full_dose.min()}")
+            # print(f"{full_dose.max()} , {gen_full_dose.max()}, {full_dose.min()} , {gen_full_dose.min()}")
             data_range = full_dose.max() - full_dose.min()
             # data_range : float = 1.0
             psnr_score, ssim_score, rmse_score = compute_measure(full_dose, gen_full_dose, data_range)
@@ -155,6 +155,12 @@ class corediff(TrainTask):
             ssim += ssim_score / len(self.test_loader)
             rmse += rmse_score / len(self.test_loader)
 
+            # DEBUG STEP FOR IMAGE CHECKING
+            full_dose_disp = torch.clip(full_dose * 3000 - 1000, -160, 240)
+            gen_full_dose_disp = torch.clip(gen_full_dose * 3000 - 1000, -160, 240)
+            full_dose_disp = full_dose_disp.squeeze().numpy()
+            gen_full_dose_disp = gen_full_dose_disp.squeeze().numpy()
+        
         self.logger.msg([psnr, ssim, rmse], n_iter)
 
         if opt.wandb:
