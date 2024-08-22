@@ -17,6 +17,10 @@ from .diffusion_modules import Diffusion
 
 import wandb
 
+# MODULES FOR DEGUGGING
+import matplotlib.pyplot as plt
+import numpy as np
+
 
 class corediff(TrainTask):
     @staticmethod
@@ -160,6 +164,17 @@ class corediff(TrainTask):
             gen_full_dose_disp = torch.clip(gen_full_dose * 3000 - 1000, -160, 240)
             full_dose_disp = full_dose_disp.squeeze().numpy()
             gen_full_dose_disp = gen_full_dose_disp.squeeze().numpy()
+
+            fig, axes = plt.subplots(1, 2, figsize=(12, 6))
+            axes[0].imshow(full_dose_disp, cmap='gray', vmin=-160, vmax=240)
+            axes[0].set_title('GT')
+            axes[0].axis('off')
+            axes[1].imshow(gen_full_dose_disp, cmap='gray', vmin=-160, vmax=240)
+            axes[1].set_title('PRED')
+            axes[1].axis('off')
+            fig.text(0.5, 0.01, f'PSNR: {psnr_score:.2f} dB, SSIM: {ssim_score:.4f}, RMSE: {rmse_score:.4f}', ha='center', fontsize=12)
+            plt.tight_layout()
+            plt.show()
         
         self.logger.msg([psnr, ssim, rmse], n_iter)
 
