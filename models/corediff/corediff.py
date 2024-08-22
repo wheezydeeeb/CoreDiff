@@ -174,7 +174,8 @@ class corediff(TrainTask):
             axes[1].axis('off')
             fig.text(0.5, 0.01, f'PSNR: {psnr_score:.2f} dB, SSIM: {ssim_score:.4f}, RMSE: {rmse_score:.4f}', ha='center', fontsize=12)
             plt.tight_layout()
-            plt.savefig("/kaggle/working/CoreDiff/images", dpi=300, bbox_inches='tight')
+            output_path = f'{id(low_dose)}.png'
+            plt.savefig(f"/kaggle/working/CoreDiff/" + output_path, dpi=300, bbox_inches='tight')
             plt.close(fig)
         
         self.logger.msg([psnr, ssim, rmse], n_iter)
