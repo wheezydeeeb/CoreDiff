@@ -147,7 +147,7 @@ class corediff(TrainTask):
             # gen_full_dose = self.transfer_calculate_window(gen_full_dose)
 
             # Debug step for measure compute size compatibility
-            # print(f"{full_dose.size()} , {gen_full_dose.size()}")
+            print(f"{full_dose.max()} , {gen_full_dose.max()}, {full_dose.min()} , {gen_full_dose.min()}")
             data_range = full_dose.max() - full_dose.min()
             # data_range : float = 1.0
             psnr_score, ssim_score, rmse_score = compute_measure(full_dose, gen_full_dose, data_range)
