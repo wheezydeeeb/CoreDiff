@@ -18,8 +18,8 @@ from .diffusion_modules import Diffusion
 import wandb
 
 # MODULES FOR DEGUGGING
-# import matplotlib.pyplot as plt
-# import numpy as np
+import matplotlib.pyplot as plt
+import numpy as np
 
 
 class corediff(TrainTask):
@@ -159,24 +159,25 @@ class corediff(TrainTask):
             ssim += ssim_score / len(self.test_loader)
             rmse += rmse_score / len(self.test_loader)
 
-            # DEBUG STEP FOR IMAGE CHECKING
-            # full_dose_disp = torch.clip(full_dose * 3000 - 1000, -160, 240)
-            # gen_full_dose_disp = torch.clip(gen_full_dose * 3000 - 1000, -160, 240)
-            # full_dose_disp = full_dose_disp.squeeze().cpu().numpy()
-            # gen_full_dose_disp = gen_full_dose_disp.squeeze().cpu().numpy()
-
-            # fig, axes = plt.subplots(1, 2, figsize=(12, 6))
-            # axes[0].imshow(full_dose_disp, cmap='gray', vmin=-160, vmax=240)
-            # axes[0].set_title('GT')
-            # axes[0].axis('off')
-            # axes[1].imshow(gen_full_dose_disp, cmap='gray', vmin=-160, vmax=240)
-            # axes[1].set_title('PRED')
-            # axes[1].axis('off')
-            # fig.text(0.5, 0.01, f'PSNR: {psnr_score:.2f} dB, SSIM: {ssim_score:.4f}, RMSE: {rmse_score:.4f}', ha='center', fontsize=12)
-            # plt.tight_layout()
-            # output_path = f'{id(low_dose)}.png'
-            # plt.savefig(f"/kaggle/working/CoreDiff/" + output_path, dpi=300, bbox_inches='tight')
-            # plt.close(fig)
+            if full_dose.max() > 0.8:
+                # DEBUG STEP FOR IMAGE CHECKING
+                full_dose_disp = torch.clip(full_dose * 3000 - 1000, -160, 240)
+                gen_full_dose_disp = torch.clip(gen_full_dose * 3000 - 1000, -160, 240)
+                full_dose_disp = full_dose_disp.squeeze().cpu().numpy()
+                gen_full_dose_disp = gen_full_dose_disp.squeeze().cpu().numpy()
+    
+                fig, axes = plt.subplots(1, 2, figsize=(12, 6))
+                axes[0].imshow(full_dose_disp, cmap='gray', vmin=-160, vmax=240)
+                axes[0].set_title('GT')
+                axes[0].axis('off')
+                axes[1].imshow(gen_full_dose_disp, cmap='gray', vmin=-160, vmax=240)
+                axes[1].set_title('PRED')
+                axes[1].axis('off')
+                fig.text(0.5, 0.01, f'PSNR: {psnr_score:.2f} dB, SSIM: {ssim_score:.4f}, RMSE: {rmse_score:.4f}', ha='center', fontsize=12)
+                plt.tight_layout()
+                output_path = f'{id(low_dose)}.png'
+                plt.savefig(f"/kaggle/working/CoreDiff/" + output_path, dpi=300, bbox_inches='tight')
+                plt.close(fig)
         
         self.logger.msg([psnr, ssim, rmse], n_iter)
 
