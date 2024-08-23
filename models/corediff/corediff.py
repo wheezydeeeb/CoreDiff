@@ -159,7 +159,7 @@ class corediff(TrainTask):
             ssim += ssim_score / len(self.test_loader)
             rmse += rmse_score / len(self.test_loader)
 
-            if full_dose.max() > 0.8:
+            if full_dose.max().item() > 0.8:
                 # DEBUG STEP FOR IMAGE CHECKING
                 full_dose_disp = torch.clip(full_dose * 3000 - 1000, -160, 240)
                 gen_full_dose_disp = torch.clip(gen_full_dose * 3000 - 1000, -160, 240)
