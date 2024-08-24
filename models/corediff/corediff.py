@@ -162,6 +162,7 @@ class corediff(TrainTask):
             rmse += rmse_score / len(self.test_loader)
 
             # DEBUG STEP FOR IMAGE DISPLAY
+            b, c, w, h = full_dose.size()
             full_dose_disp = torch.clip(full_dose * 3000 - 1000, -160, 240)
             gen_full_dose_disp = torch.clip(gen_full_dose * 3000 - 1000, -160, 240)
             fake_imgs = torch.stack([full_dose_disp, gen_full_dose_disp])
