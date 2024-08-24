@@ -24,6 +24,8 @@ class CTDataset(Dataset):
                 data_root = '/kaggle/working/mayo_2016_npy'
                 
             patient_ids = [67, 96, 109, 143, 192, 286, 291, 310, 333, 506]
+
+            # This code incorporates arbitrary test train split
             if mode == 'train':
                 for index in sorted(test_id, reverse=True):
                     patient_ids.pop(index)
