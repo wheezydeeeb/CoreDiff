@@ -30,7 +30,7 @@ class CTDataset(Dataset):
                 for index in sorted(test_id, reverse=True):
                     patient_ids.pop(index)
             elif mode == 'test':
-                test_ids = [patient_ids[index] for i in test_id]
+                test_ids = [patient_ids[index] for index in test_id]
                 patient_ids = test_ids
 
             patient_lists = []
