@@ -162,12 +162,12 @@ class corediff(TrainTask):
             rmse += rmse_score / len(self.test_loader)
 
             # DEBUG STEP FOR IMAGE DISPLAY
-            b, c, w, h = full_dose.size()
-            full_dose_disp = torch.clip(full_dose * 3000 - 1000, -160, 240)
-            gen_full_dose_disp = torch.clip(gen_full_dose * 3000 - 1000, -160, 240)
-            fake_imgs = torch.stack([full_dose_disp, gen_full_dose_disp])
+            low_dose = low_dose[:, 1].unsqueeze(1)
+            b, c, w, h = low_dose.size()
+            fake_imgs = torch.stack([full_dose, low_dose, gen_full_dose])
             fake_imgs = fake_imgs.transpose(1, 0).reshape((-1, c, w, h))
-            self.logger.save_image(torchvision.utils.make_grid(fake_imgs, nrow=2),
+            fake_imgs = self.transfer_display_window(fake_imgs, cut_min=-160, cut_max=240)
+            self.logger.save_image(torchvision.utils.make_grid(fake_imgs, nrow=3),
                        n_iter, 'test_{}_{}_{}'.format(self.dose, self.sampling_routine, idx) + '_' + opt.test_dataset)
 
             idx += 1
