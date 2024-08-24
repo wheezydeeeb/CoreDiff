@@ -20,7 +20,7 @@ import wandb
 # MODULES FOR DEGUGGING
 # import matplotlib.pyplot as plt
 # import numpy as np
-from torchvision.utils import save_image
+# from torchvision.utils import save_image
 
 
 class corediff(TrainTask):
@@ -162,13 +162,13 @@ class corediff(TrainTask):
             rmse += rmse_score / len(self.test_loader)
 
             # DEBUG STEP FOR IMAGE DISPLAY
-            low_dose = low_dose[:, 1].unsqueeze(1)
-            b, c, w, h = low_dose.size()
-            fake_imgs = torch.stack([full_dose, low_dose, gen_full_dose])
-            fake_imgs = fake_imgs.transpose(1, 0).reshape((-1, c, w, h))
-            fake_imgs = self.transfer_display_window(fake_imgs, cut_min=-160, cut_max=240)
-            self.logger.save_image(torchvision.utils.make_grid(fake_imgs, nrow=3),
-                       n_iter, 'test_{}_{}_{}'.format(self.dose, self.sampling_routine, idx) + '_' + opt.test_dataset)
+            # low_dose = low_dose[:, 1].unsqueeze(1)
+            # b, c, w, h = low_dose.size()
+            # fake_imgs = torch.stack([full_dose, low_dose, gen_full_dose])
+            # fake_imgs = fake_imgs.transpose(1, 0).reshape((-1, c, w, h))
+            # fake_imgs = self.transfer_display_window(fake_imgs, cut_min=-160, cut_max=240)
+            # self.logger.save_image(torchvision.utils.make_grid(fake_imgs, nrow=3),
+            #            n_iter, 'test_{}_{}_{}'.format(self.dose, self.sampling_routine, idx) + '_' + opt.test_dataset)
 
             idx += 1
         
