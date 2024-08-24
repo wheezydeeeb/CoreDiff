@@ -9,7 +9,7 @@ import torch.nn.functional as F
 
 
 class CTDataset(Dataset):
-    def __init__(self, dataset, mode, test_id=9, dose=5, context=True):
+    def __init__(self, dataset, mode, test_id=[9], dose=5, context=True):
         self.mode = mode
         self.context = context
         print(f"Dataset : {dataset}  |  Mode : {mode}")
@@ -25,9 +25,11 @@ class CTDataset(Dataset):
                 
             patient_ids = [67, 96, 109, 143, 192, 286, 291, 310, 333, 506]
             if mode == 'train':
-                patient_ids.pop(test_id)
+                for index in sorted(test_id, reverse=True):
+                    patient_ids.pop(index)
             elif mode == 'test':
-                patient_ids = patient_ids[test_id:test_id + 1]
+                test_ids = [patient_ids[index] for i in test_id]
+                patient_ids = test_ids
 
             patient_lists = []
             for ind, id in enumerate(patient_ids):
