@@ -168,8 +168,9 @@ class corediff(TrainTask):
             fake_imgs = torch.stack([full_dose_disp, low_dose_disp, gen_full_dose_disp])
             fake_imgs = fake_imgs.transpose(1, 0).reshape((-1, c, w, h))
             self.logger.save_image(torchvision.utils.make_grid(fake_imgs, nrow=3),
-                       n_iter, 'test_{}_{}'.format(self.dose, self.sampling_routine) + '_' + opt.test_dataset)
-            
+                       n_iter, 'test_{}_{}_{}'.format(self.dose, self.sampling_routine, idx) + '_' + opt.test_dataset)
+
+            idx += 1
         
         self.logger.msg([psnr, ssim, rmse], n_iter)
 
