@@ -163,11 +163,10 @@ class corediff(TrainTask):
 
             # DEBUG STEP FOR IMAGE DISPLAY
             full_dose_disp = torch.clip(full_dose * 3000 - 1000, -160, 240)
-            low_dose_disp = torch.clip(low_dose * 3000 - 1000, -160, 240)
             gen_full_dose_disp = torch.clip(gen_full_dose * 3000 - 1000, -160, 240)
-            fake_imgs = torch.stack([full_dose_disp, low_dose_disp, gen_full_dose_disp])
+            fake_imgs = torch.stack([full_dose_disp, gen_full_dose_disp])
             fake_imgs = fake_imgs.transpose(1, 0).reshape((-1, c, w, h))
-            self.logger.save_image(torchvision.utils.make_grid(fake_imgs, nrow=3),
+            self.logger.save_image(torchvision.utils.make_grid(fake_imgs, nrow=2),
                        n_iter, 'test_{}_{}_{}'.format(self.dose, self.sampling_routine, idx) + '_' + opt.test_dataset)
 
             idx += 1
