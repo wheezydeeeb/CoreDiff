@@ -158,9 +158,9 @@ class CTDataset(Dataset):
 
 
 dataset_dict = {
-    'train': partial(CTDataset, dataset='mayo_2016_sim', mode='train', test_id=9, dose=5, context=True),
-    'mayo_2016_sim': partial(CTDataset, dataset='mayo_2016_sim', mode='test', test_id=9, dose=5, context=True),
-    'mayo_2016': partial(CTDataset, dataset='mayo_2016', mode='test', test_id=9, dose=25, context=True),
+    'train': partial(CTDataset, dataset='mayo_2016_sim', mode='train', test_id=[9], dose=5, context=True),
+    'mayo_2016_sim': partial(CTDataset, dataset='mayo_2016_sim', mode='test', test_id=[9], dose=5, context=True),
+    'mayo_2016': partial(CTDataset, dataset='mayo_2016', mode='test', test_id=[9], dose=25, context=True),
     'mayo_2020': partial(CTDataset, dataset='mayo_2020', mode='test', test_id=None, dose=None, context=True),
     'piglet': partial(CTDataset, dataset='piglet', mode='test', test_id=None, dose=None, context=True),
     'phantom': partial(CTDataset, dataset='phantom', mode='test', test_id=None, dose=108, context=True),
