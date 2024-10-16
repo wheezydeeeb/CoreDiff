@@ -14,6 +14,8 @@ from kaggle_secrets import UserSecretsClient
 from models.basic_template import TrainTask
 from .corediff_wrapper import Network, WeightNet
 from .diffusion_modules import Diffusion
+from torch.optim.lr_scheduler import CosineAnnealingLR
+from pytorch_msssim import MS_SSIM
 
 import wandb
 
@@ -22,6 +24,47 @@ import wandb
 # import numpy as np
 # from torchvision.utils import save_image
 
+class VGGPerceptualLoss(torch.nn.Module):
+    def __init__(self, resize=True):
+        super(VGGPerceptualLoss, self).__init__()
+        blocks = []
+        blocks.append(torchvision.models.vgg16(pretrained=True).features[:4].eval())
+        blocks.append(torchvision.models.vgg16(pretrained=True).features[4:9].eval())
+        blocks.append(torchvision.models.vgg16(pretrained=True).features[9:16].eval())
+        blocks.append(torchvision.models.vgg16(pretrained=True).features[16:23].eval())
+        for bl in blocks:
+            for p in bl.parameters():
+                p.requires_grad = False
+        self.blocks = torch.nn.ModuleList(blocks)
+        self.transform = torch.nn.functional.interpolate
+        self.resize = resize
+        self.register_buffer("mean", torch.tensor([0.485, 0.456, 0.406]).view(1, 3, 1, 1))
+        self.register_buffer("std", torch.tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1))
+
+    def forward(self, input, target, feature_layers=[0, 1, 2, 3], style_layers=[]):
+        if input.shape[1] != 3:
+            input = input.repeat(1, 3, 1, 1)
+            target = target.repeat(1, 3, 1, 1)
+        input = (input-self.mean) / self.std
+        target = (target-self.mean) / self.std
+        if self.resize:
+            input = self.transform(input, mode='bilinear', size=(224, 224), align_corners=False)
+            target = self.transform(target, mode='bilinear', size=(224, 224), align_corners=False)
+        loss = 0.0
+        x = input
+        y = target
+        for i, block in enumerate(self.blocks):
+            x = block(x)
+            y = block(y)
+            if i in feature_layers:
+                loss += torch.nn.functional.l1_loss(x, y)
+            if i in style_layers:
+                act_x = x.reshape(x.shape[0], x.shape[1], -1)
+                act_y = y.reshape(y.shape[0], y.shape[1], -1)
+                gram_x = act_x @ act_x.permute(0, 2, 1)
+                gram_y = act_y @ act_y.permute(0, 2, 1)
+                loss += torch.nn.functional.l1_loss(gram_x, gram_y)
+        return loss
 
 class corediff(TrainTask):
     @staticmethod
@@ -63,15 +106,19 @@ class corediff(TrainTask):
         ).cuda()
     
         optimizer = torch.optim.Adam(model.parameters(), opt.init_lr)
+        lrScheduler = CosineAnnealingLR(optimizer, T_max) # T_max to be implemented 
         ema_model = copy.deepcopy(model)
 
-        self.logger.modules = [model, ema_model, optimizer]
+        self.logger.modules = [model, ema_model, optimizer, lrScheduler]
         self.model = model
         self.optimizer = optimizer
         self.ema_model = ema_model
+        self.lrScheduler = lrScheduler
 
         self.lossfn = nn.MSELoss()
         self.lossfn_sub1 = nn.MSELoss()
+        self.msssimLoss = MS_SSIM(win_size=11, data_range=1, size_average=True, channel=1)
+        self.vggLoss = VGGPerceptualLoss(resize=True)
 
         self.reset_parameters()
     
@@ -94,6 +141,8 @@ class corediff(TrainTask):
         low_dose, full_dose = inputs
         low_dose, full_dose = low_dose.cuda(), full_dose.cuda()
 
+        self.optimizer.zero_grad()
+
         ## training process of CoreDiff
         gen_full_dose, x_mix, gen_full_dose_sub1, x_mix_sub1 = self.model(
             low_dose, full_dose, n_iter,
@@ -101,7 +150,13 @@ class corediff(TrainTask):
             start_adjust_iter=opt.start_adjust_iter
         )
 
-        loss = 0.5 * self.lossfn(gen_full_dose, full_dose) + 0.5 * self.lossfn_sub1(gen_full_dose_sub1, full_dose)
+        # loss computations
+        gamma, beta = 0.03, 0.05
+        mse_loss = 0.5 * self.lossfn(gen_full_dose, full_dose) + 0.5 * self.lossfn_sub1(gen_full_dose_sub1, full_dose)
+        msssim_loss = gamma * ( 0.5 * (1 - self.msssimLoss(gen_full_dose, full_dose) + 0.5 * (1 - self.msssimLoss(gen_full_dose_sub1, full_dose))))
+        vgg_loss = beta * (0.5 * self.vggLoss(gen_full_dose, full_dose, feature_layers=[1, 2], style_layers=[]) + 0.5 * self.vggLoss(gen_full_dose_sub1, full_dose, feature_layers=[1, 2], style_layers=[]))
+        loss = mse_loss + msssim_loss + vgg_loss
+
         loss.backward()
 
         if opt.wandb:
@@ -116,7 +171,7 @@ class corediff(TrainTask):
                 wandb.init(project=opt.run_name)
 
         self.optimizer.step()
-        self.optimizer.zero_grad()
+        self.lrScheduler.step()
 
         lr = self.optimizer.param_groups[0]['lr']
         loss = loss.item()
