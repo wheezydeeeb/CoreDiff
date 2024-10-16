@@ -196,10 +196,12 @@ class corediff(TrainTask):
                     print(f"WANDB_API_KEY not found. Please make sure it is set as a secret.")
                 wandb.init(project=opt.run_name)
 
-        self.lrScheduler.step()
         self.optimizer.step()
-
         lr = self.optimizer.param_groups[0]['lr']
+
+        self.lrScheduler.step()
+        
+
         loss = loss.item()
         self.logger.msg([loss, lr], n_iter)
 
