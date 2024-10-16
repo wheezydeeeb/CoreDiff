@@ -98,7 +98,7 @@ class corediff(TrainTask):
         parser = argparse.ArgumentParser('Private arguments for training of different methods')
         parser.add_argument("--in_channels", default=3, type=int)
         parser.add_argument("--out_channels", default=1, type=int)
-        parser.add_argument("--init_lr", default=1e-3, type=float)
+        parser.add_argument("--init_lr", default=4e-5, type=float)
 
         parser.add_argument('--update_ema_iter', default=10, type=int)
         parser.add_argument('--start_ema_iter', default=2000, type=int)
@@ -132,19 +132,20 @@ class corediff(TrainTask):
         ).cuda()
     
         optimizer = torch.optim.Adam(model.parameters(), opt.init_lr)
-        lrScheduler = CosineAnnealingLR(optimizer, 150000)
+        # lrScheduler = CosineAnnealingLR(optimizer, 150000)
         ema_model = copy.deepcopy(model)
 
-        self.logger.modules = [model, ema_model, optimizer, lrScheduler]
+        # self.logger.modules = [model, ema_model, optimizer, lrScheduler]
+        self.logger.modules = [model, ema_model, optimizer]
         self.model = model
         self.optimizer = optimizer
         self.ema_model = ema_model
-        self.lrScheduler = lrScheduler
+        # self.lrScheduler = lrScheduler
 
         self.lossfn = nn.MSELoss()
         self.lossfn_sub1 = nn.MSELoss()
-        self.msssimLoss = MS_SSIM(win_size=11, data_range=1, size_average=True, channel=1)
-        self.vggLoss = VGGPerceptualLoss(resize=True)
+        # self.msssimLoss = MS_SSIM(win_size=11, data_range=1, size_average=True, channel=1)
+        # self.vggLoss = VGGPerceptualLoss(resize=True)
 
         self.reset_parameters()
     
@@ -177,11 +178,11 @@ class corediff(TrainTask):
         )
 
         # loss computations
-        gamma, beta = 0.03, 0.05
+        # gamma, beta = 0.03, 0.05
         mse_loss = 0.5 * self.lossfn(gen_full_dose, full_dose) + 0.5 * self.lossfn_sub1(gen_full_dose_sub1, full_dose)
-        msssim_loss = gamma * ( 0.5 * (1 - self.msssimLoss(gen_full_dose, full_dose) + 0.5 * (1 - self.msssimLoss(gen_full_dose_sub1, full_dose))))
-        vgg_loss = beta * (0.5 * self.vggLoss(gen_full_dose, full_dose, feature_layers=[1, 2], style_layers=[]) + 0.5 * self.vggLoss(gen_full_dose_sub1, full_dose, feature_layers=[1, 2], style_layers=[]))
-        loss = mse_loss + msssim_loss + vgg_loss
+        # msssim_loss = gamma * ( 0.5 * (1 - self.msssimLoss(gen_full_dose, full_dose) + 0.5 * (1 - self.msssimLoss(gen_full_dose_sub1, full_dose))))
+        # vgg_loss = beta * (0.5 * self.vggLoss(gen_full_dose, full_dose, feature_layers=[1, 2], style_layers=[]) + 0.5 * self.vggLoss(gen_full_dose_sub1, full_dose, feature_layers=[1, 2], style_layers=[]))
+        loss = mse_loss
 
         loss.backward()
 
@@ -199,7 +200,7 @@ class corediff(TrainTask):
         self.optimizer.step()
         lr = self.optimizer.param_groups[0]['lr']
 
-        self.lrScheduler.step()
+        # self.lrScheduler.step()
         
 
         loss = loss.item()
