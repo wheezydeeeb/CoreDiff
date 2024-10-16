@@ -27,6 +27,9 @@ import wandb
 import torch
 import torchvision
 
+import torch
+import torchvision
+
 class VGGPerceptualLoss(torch.nn.Module):
     def __init__(self, resize=True):
         super(VGGPerceptualLoss, self).__init__()
@@ -50,9 +53,14 @@ class VGGPerceptualLoss(torch.nn.Module):
         self.register_buffer("std", torch.tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1))
 
     def forward(self, input, target, feature_layers=[0, 1, 2, 3], style_layers=[]):
+        # Ensure both input, target, and VGG blocks are on the same device
         device = input.device
         self.mean = self.mean.to(device)
         self.std = self.std.to(device)
+
+        # Move VGG blocks to the same device as input
+        for block in self.blocks:
+            block.to(device)
 
         if input.shape[1] != 3:
             input = input.repeat(1, 3, 1, 1)
