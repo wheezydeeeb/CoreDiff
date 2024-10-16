@@ -27,9 +27,6 @@ import wandb
 import torch
 import torchvision
 
-import torch
-import torchvision
-
 class VGGPerceptualLoss(torch.nn.Module):
     def __init__(self, resize=True):
         super(VGGPerceptualLoss, self).__init__()
@@ -135,7 +132,7 @@ class corediff(TrainTask):
         ).cuda()
     
         optimizer = torch.optim.Adam(model.parameters(), opt.init_lr)
-        lrScheduler = CosineAnnealingLR(optimizer, 100000)
+        lrScheduler = CosineAnnealingLR(optimizer, 6)
         ema_model = copy.deepcopy(model)
 
         self.logger.modules = [model, ema_model, optimizer, lrScheduler]
