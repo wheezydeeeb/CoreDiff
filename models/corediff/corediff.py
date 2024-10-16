@@ -106,7 +106,7 @@ class corediff(TrainTask):
         ).cuda()
     
         optimizer = torch.optim.Adam(model.parameters(), opt.init_lr)
-        lrScheduler = CosineAnnealingLR(optimizer, T_max) # T_max to be implemented 
+        lrScheduler = CosineAnnealingLR(optimizer, 100000)
         ema_model = copy.deepcopy(model)
 
         self.logger.modules = [model, ema_model, optimizer, lrScheduler]
