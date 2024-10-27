@@ -142,6 +142,10 @@ class corediff(TrainTask):
         self.ema_model = ema_model
         # self.lrScheduler = lrScheduler
 
+        # Print total number of parameters
+        total_params = sum(p.numel() for p in self.model.parameters())
+        print(f"Number of parameters: {total_params}")
+
         self.lossfn = nn.MSELoss()
         self.lossfn_sub1 = nn.MSELoss()
         # self.msssimLoss = MS_SSIM(win_size=11, data_range=1, size_average=True, channel=1)
