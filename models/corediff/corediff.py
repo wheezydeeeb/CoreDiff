@@ -15,7 +15,7 @@ from models.basic_template import TrainTask
 from .corediff_wrapper import Network, WeightNet
 from .diffusion_modules import Diffusion
 from torch.optim.lr_scheduler import CosineAnnealingLR
-from pytorch_msssim import MS_SSIM
+# from pytorch_msssim import MS_SSIM
 
 import wandb
 
@@ -24,8 +24,8 @@ import wandb
 # import numpy as np
 # from torchvision.utils import save_image
 
-import torch
-import torchvision
+# import torch
+# import torchvision
 
 class VGGPerceptualLoss(torch.nn.Module):
     def __init__(self, resize=True):
@@ -98,7 +98,7 @@ class corediff(TrainTask):
         parser = argparse.ArgumentParser('Private arguments for training of different methods')
         parser.add_argument("--in_channels", default=3, type=int)
         parser.add_argument("--out_channels", default=1, type=int)
-        parser.add_argument("--init_lr", default=4e-5, type=float)
+        parser.add_argument("--init_lr", default=2e-4, type=float)
 
         parser.add_argument('--update_ema_iter', default=10, type=int)
         parser.add_argument('--start_ema_iter', default=2000, type=int)
