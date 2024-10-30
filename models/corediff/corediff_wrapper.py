@@ -161,6 +161,8 @@ class UNet(nn.Module):
             single_conv(64, 64)
         )
 
+        self.gelu = nn.GELU()
+
         self.outc = outconv(64, out_channels)
 
     def forward(self, x, t, x_adjust, adjust):
@@ -173,6 +175,12 @@ class UNet(nn.Module):
             residual_x = x
         
         down1 = self.down1(inx)
+
+        # First DeConv residual
+        residual1 = 0
+        if not adjust:
+            residual1 = down1
+        
         condition1 = self.mlp1(time_emb)
         b, c = condition1.shape
         condition1 = rearrange(condition1, 'b c -> b c 1 1')
@@ -182,13 +190,15 @@ class UNet(nn.Module):
         else:
             down1 = down1 + condition1
         conv1 = self.conv1(down1)
-
-        # First DeConv residual
-        residual1 = 0
-        if not adjust:
-            residual1 = conv1
+        
 
         down2 = self.down2(conv1)
+
+        # Second DeConv residual
+        residual2 = 0
+        if not adjust:
+            residual2 = conv2
+        
         condition2 = self.mlp2(time_emb)
         b, c = condition2.shape
         condition2 = rearrange(condition2, 'b c -> b c 1 1')
@@ -199,11 +209,7 @@ class UNet(nn.Module):
             down2 = down2 + condition2
         conv2 = self.conv2(down2)
 
-        # Second DeConv residual
-        residual2 = 0
-        if not adjust:
-            residual2 = conv2
-
+    
         up1 = self.up1(conv2, conv1)
         condition3 = self.mlp3(time_emb)
         b, c = condition3.shape
@@ -230,8 +236,8 @@ class UNet(nn.Module):
 
         out = self.outc(conv4)
 
-        # residual_x connection
-        out = out + residual_x
+        # residual_x connection with GELU
+        out = self.gelu(out + residual_x)
         return out
 
 
