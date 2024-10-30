@@ -98,8 +98,6 @@ class UNet(nn.Module):
     def __init__(self, in_channels=2, out_channels=1):
         super(UNet, self).__init__()
 
-        print(f"{in_channels}")
-
         dim = 32
         self.time_mlp = nn.Sequential(
             SinusoidalPosEmb(dim),
@@ -174,7 +172,7 @@ class UNet(nn.Module):
         # Input residual
         residual_x = 0
         if not adjust:
-            residual_x = x
+            residual_x = x[:, 1].unsqueeze(1)
 
         # INX residual
         residual_inx = 0
