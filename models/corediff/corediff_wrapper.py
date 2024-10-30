@@ -173,6 +173,7 @@ class UNet(nn.Module):
         residual_x = 0
         if not adjust:
             residual_x = x[:, 1].unsqueeze(1)
+            print(f"{residual_x.size()}")
 
         # INX residual
         residual_inx = 0
