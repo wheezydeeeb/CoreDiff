@@ -178,13 +178,10 @@ class UNet(nn.Module):
         residual_inx = 0
         if not adjust:
             residual_inx = inx
-        
+            
         down1 = self.down1(inx)
 
-        # First DeConv residual
-        residual1 = 0
-        if not adjust:
-            residual1 = down1
+        
         
         condition1 = self.mlp1(time_emb)
         b, c = condition1.shape
@@ -195,6 +192,11 @@ class UNet(nn.Module):
         else:
             down1 = down1 + condition1
         conv1 = self.conv1(down1)
+
+        # First DeConv residual
+        residual1 = 0
+        if not adjust:
+            residual1 = conv1
         
 
         down2 = self.down2(conv1)
