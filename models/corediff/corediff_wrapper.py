@@ -98,6 +98,8 @@ class UNet(nn.Module):
     def __init__(self, in_channels=2, out_channels=1):
         super(UNet, self).__init__()
 
+        print(f"{self.in_channels}")
+
         dim = 32
         self.time_mlp = nn.Sequential(
             SinusoidalPosEmb(dim),
