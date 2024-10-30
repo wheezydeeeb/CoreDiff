@@ -197,7 +197,7 @@ class UNet(nn.Module):
         # Second DeConv residual
         residual2 = 0
         if not adjust:
-            residual2 = conv2
+            residual2 = down2
         
         condition2 = self.mlp2(time_emb)
         b, c = condition2.shape
