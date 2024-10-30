@@ -173,6 +173,11 @@ class UNet(nn.Module):
         residual_x = 0
         if not adjust:
             residual_x = x
+
+        # INX residual
+        residual_inx = 0
+        if not adjust:
+            residual_inx = inx
         
         down1 = self.down1(inx)
 
@@ -193,12 +198,6 @@ class UNet(nn.Module):
         
 
         down2 = self.down2(conv1)
-
-        # Second DeConv residual
-        residual2 = 0
-        if not adjust:
-            residual2 = down2
-        
         condition2 = self.mlp2(time_emb)
         b, c = condition2.shape
         condition2 = rearrange(condition2, 'b c -> b c 1 1')
@@ -219,7 +218,7 @@ class UNet(nn.Module):
             up1 = up1 + gamma3 * condition3 + beta3
         else:
             # residual1 connection
-            up1 = up1 + condition3 + residual2
+            up1 = up1 + condition3 + residual1
         conv3 = self.conv3(up1)
 
         up2 = self.up2(conv3, inx)
@@ -230,8 +229,8 @@ class UNet(nn.Module):
             gamma4, beta4 = self.adjust4(x_adjust)
             up2 = up2 + gamma4 * condition4 + beta4
         else:
-            # residual2 connection
-            up2 = up2 + condition4 + residual1
+            # residual_inx connection
+            up2 = up2 + condition4 + residual_inx
         conv4 = self.conv4(up2)
 
         out = self.outc(conv4)
