@@ -166,6 +166,12 @@ class UNet(nn.Module):
     def forward(self, x, t, x_adjust, adjust):
         inx = self.inc(x)
         time_emb = self.time_mlp(t)
+
+        # Input residual
+        residual_x = 0
+        if not adjust:
+            residual_x = x
+        
         down1 = self.down1(inx)
         condition1 = self.mlp1(time_emb)
         b, c = condition1.shape
@@ -176,6 +182,11 @@ class UNet(nn.Module):
         else:
             down1 = down1 + condition1
         conv1 = self.conv1(down1)
+
+        # First DeConv residual
+        residual1 = 0
+        if not adjust:
+            residual1 = conv1
 
         down2 = self.down2(conv1)
         condition2 = self.mlp2(time_emb)
@@ -188,6 +199,11 @@ class UNet(nn.Module):
             down2 = down2 + condition2
         conv2 = self.conv2(down2)
 
+        # Second DeConv residual
+        residual2 = 0
+        if not adjust:
+            residual2 = conv2
+
         up1 = self.up1(conv2, conv1)
         condition3 = self.mlp3(time_emb)
         b, c = condition3.shape
@@ -196,7 +212,8 @@ class UNet(nn.Module):
             gamma3, beta3 = self.adjust3(x_adjust)
             up1 = up1 + gamma3 * condition3 + beta3
         else:
-            up1 = up1 + condition3
+            # residual1 connection
+            up1 = up1 + condition3 + residual2
         conv3 = self.conv3(up1)
 
         up2 = self.up2(conv3, inx)
@@ -207,10 +224,14 @@ class UNet(nn.Module):
             gamma4, beta4 = self.adjust4(x_adjust)
             up2 = up2 + gamma4 * condition4 + beta4
         else:
-            up2 = up2 + condition4
+            # residual2 connection
+            up2 = up2 + condition4 + residual1
         conv4 = self.conv4(up2)
 
         out = self.outc(conv4)
+
+        # residual_x connection
+        out = out + residual_x
         return out
 
 
