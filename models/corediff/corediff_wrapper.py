@@ -238,7 +238,8 @@ class UNet(nn.Module):
         out = self.outc(conv4)
 
         # residual_x connection with GELU
-        out = self.gelu(out + residual_x)
+        # out = self.gelu(out + residual_x)
+        out = out + residual_x
         return out
 
 
