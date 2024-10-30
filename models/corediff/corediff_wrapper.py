@@ -173,7 +173,6 @@ class UNet(nn.Module):
         residual_x = 0
         if not adjust:
             residual_x = x[:, 1].unsqueeze(1)
-            print(f"{residual_x.size()}")
 
         # INX residual
         residual_inx = 0
@@ -240,7 +239,7 @@ class UNet(nn.Module):
 
         # residual_x connection with GELU
         # out = self.gelu(out + residual_x)
-        out = out + residual_x
+        out = self.gelu(out + residual_x) if not adjust else out + residual_x
         return out
 
 
