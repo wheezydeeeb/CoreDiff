@@ -168,21 +168,13 @@ class UNet(nn.Module):
     def forward(self, x, t, x_adjust, adjust):
         inx = self.inc(x)
         time_emb = self.time_mlp(t)
-
-        # Input residual
         residual_x = 0
         if not adjust:
             residual_x = x[:, 1].unsqueeze(1)
 
-        # INX residual
-        residual_inx = 0
-        if not adjust:
-            residual_inx = inx
-            
+        # Encoder
         down1 = self.down1(inx)
 
-        
-        
         condition1 = self.mlp1(time_emb)
         b, c = condition1.shape
         condition1 = rearrange(condition1, 'b c -> b c 1 1')
@@ -192,14 +184,9 @@ class UNet(nn.Module):
         else:
             down1 = down1 + condition1
         conv1 = self.conv1(down1)
-
-        # First DeConv residual
-        residual1 = 0
-        if not adjust:
-            residual1 = conv1
         
-
         down2 = self.down2(conv1)
+        
         condition2 = self.mlp2(time_emb)
         b, c = condition2.shape
         condition2 = rearrange(condition2, 'b c -> b c 1 1')
@@ -210,8 +197,9 @@ class UNet(nn.Module):
             down2 = down2 + condition2
         conv2 = self.conv2(down2)
 
-    
+        # Decoder 
         up1 = self.up1(conv2, conv1)
+        
         condition3 = self.mlp3(time_emb)
         b, c = condition3.shape
         condition3 = rearrange(condition3, 'b c -> b c 1 1')
@@ -219,11 +207,11 @@ class UNet(nn.Module):
             gamma3, beta3 = self.adjust3(x_adjust)
             up1 = up1 + gamma3 * condition3 + beta3
         else:
-            # residual1 connection
-            up1 = up1 + condition3 + residual1
+            up1 = up1 + condition3
         conv3 = self.conv3(up1)
 
         up2 = self.up2(conv3, inx)
+        
         condition4 = self.mlp4(time_emb)
         b, c = condition4.shape
         condition4 = rearrange(condition4, 'b c -> b c 1 1')
@@ -231,15 +219,15 @@ class UNet(nn.Module):
             gamma4, beta4 = self.adjust4(x_adjust)
             up2 = up2 + gamma4 * condition4 + beta4
         else:
-            # residual_inx connection
-            up2 = up2 + condition4 + residual_inx
+            up2 = up2 + condition4
         conv4 = self.conv4(up2)
 
+        # Output conv
         out = self.outc(conv4)
 
         # residual_x connection with GELU
         # out = self.gelu(out + residual_x)
-        out = self.gelu(out + residual_x) if not adjust else out + residual_x
+        out = self.gelu(out + residual_x)
         return out
 
 
