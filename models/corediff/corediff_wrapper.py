@@ -312,7 +312,6 @@ class UNet(nn.Module):
         # Decoder Block 1
         # Upsample, increase channels then adjust in order 
         up1 = self.up1(conv2, conv1)
-        up1 = self.resfftconv128(up1, residue=conv1)
         condition3 = self.mlp3(time_emb)
         b, c = condition3.shape
         condition3 = rearrange(condition3, 'b c -> b c 1 1')
@@ -321,11 +320,11 @@ class UNet(nn.Module):
             up1 = up1 + gamma3 * condition3 + beta3
         else:
             up1 = up1 + condition3
+        up1 = self.resfftconv128(up1, residue=conv1)
         conv3 = self.conv3(up1)
 
         # Decoder Block 2
         up2 = self.up2(conv3, inx)
-        up2 = self.resfftconv64(up2, residue=res_inx)
         condition4 = self.mlp4(time_emb)
         b, c = condition4.shape
         condition4 = rearrange(condition4, 'b c -> b c 1 1')
@@ -334,6 +333,7 @@ class UNet(nn.Module):
             up2 = up2 + gamma4 * condition4 + beta4
         else:
             up2 = up2 + condition4
+        up2 = self.resfftconv64(up2, residue=res_inx)
         conv4 = self.conv4(up2)
 
         # Output conv
