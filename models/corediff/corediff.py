@@ -30,7 +30,7 @@ class corediff(TrainTask):
         parser = argparse.ArgumentParser('Private arguments for training of different methods')
         parser.add_argument("--in_channels", default=3, type=int)
         parser.add_argument("--out_channels", default=1, type=int)
-        parser.add_argument("--init_lr", default=2e-4, type=float)
+        parser.add_argument("--init_lr", default=1e-5, type=float)
 
         parser.add_argument('--update_ema_iter', default=10, type=int)
         parser.add_argument('--start_ema_iter', default=2000, type=int)
