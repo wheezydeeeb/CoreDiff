@@ -96,12 +96,10 @@ class res_fft_conv(nn.Module):
         self.img_conv = nn.Conv2d(in_channels,   in_channels,   kernel_size=3, stride=1, padding=1)
         self.fft_conv = nn.Conv2d(in_channels*2, in_channels*2, kernel_size=1, stride=1, padding=0)
 
-    def forward(self, x, residue=None):
+    def forward(self, x):
 
-        # Handling residual
+        # Handling initial conv
         x = self.img_conv(x)
-        if residue is not None:
-            x = x + residue
         x = F.gelu(x)
 
         # Frequency domain
@@ -117,11 +115,10 @@ class res_fft_conv(nn.Module):
         x_conv = F.gelu(self.img_conv(x))
 
         # Mixing (residual, image, fourier)
-        output = x + x_conv + fft
+        output = x_conv + fft
         return output  
 
- # The architecture of U-Net refers to "Toward Convolutional Blind Denoising of Real Photographs",
- # official MATLAB implementation: https://github.com/GuoShi28/CBDNet.
+ # The architecture of U-Net refers to "Toward Convolutional Blind Denoising of Real Photographs",MATLAB implementation: https://github.com/GuoShi28/CBDNet.
  # unofficial PyTorch implementation: https://github.com/IDKiro/CBDNet-pytorch/tree/master.
  # We improved it by adding time step embedding and EMM module, while removing the noise estimation network.
 class UNet(nn.Module):
@@ -274,9 +271,7 @@ class UNet(nn.Module):
     def forward(self, x, t, x_adjust, adjust):
         inx = self.inc(x)
         time_emb = self.time_mlp(t)
-
-        # residual_x = 0
-        # if not adjust:
+        
         residual_x = x[:, 1].unsqueeze(1)
 
         # resfftconv Block 1
@@ -320,11 +315,11 @@ class UNet(nn.Module):
             up1 = up1 + gamma3 * condition3 + beta3
         else:
             up1 = up1 + condition3
-        up1 = self.resfftconv128(up1, residue=conv1)
+        up1 = self.resfftconv128(up1)
         conv3 = self.conv3(up1)
 
         # Decoder Block 2
-        up2 = self.up2(conv3, inx)
+        up2 = self.up2(conv3, res_inx)
         condition4 = self.mlp4(time_emb)
         b, c = condition4.shape
         condition4 = rearrange(condition4, 'b c -> b c 1 1')
@@ -333,7 +328,7 @@ class UNet(nn.Module):
             up2 = up2 + gamma4 * condition4 + beta4
         else:
             up2 = up2 + condition4
-        up2 = self.resfftconv64(up2, residue=res_inx)
+        up2 = self.resfftconv64(up2)
         conv4 = self.conv4(up2)
 
         # Output conv
