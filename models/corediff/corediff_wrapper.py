@@ -205,11 +205,10 @@ class UNet(nn.Module):
         )
 
         # Encoder Block 1
-        self.inc = nn.Sequential(
-            single_conv(in_channels, 64),
+        self.enc1 = nn.Sequential(
+            single_conv(in_channels, 64)
         )
         self.down1 = nn.AvgPool2d(2)
-        
         # Adjust Net for Encoder 1
         self.mlp1 = nn.Sequential(
             nn.GELU(),
@@ -218,13 +217,11 @@ class UNet(nn.Module):
         self.adjust1 = adjust_net(64)
 
         # Encoder Block 2
-        self.conv1 = nn.Sequential(
+        self.enc2 = nn.Sequential(
             single_conv(64, 128),
-            single_conv(128, 128),
             single_conv(128, 128)
         )
         self.down2 = nn.AvgPool2d(2)
-
         # Adjust Net for Encoder 2
         self.mlp2 = nn.Sequential(
             nn.GELU(),
@@ -232,14 +229,26 @@ class UNet(nn.Module):
         )
         self.adjust2 = adjust_net(128)
 
-        # Bottleneck Link
-        self.conv2 = nn.Sequential(
+        # Encoder Block 3
+        self.enc3 = nn.Sequential(
             single_conv(128, 256),
             single_conv(256, 256),
-            single_conv(256, 256),
-            single_conv(256, 256),
-            single_conv(256, 256),
             single_conv(256, 256)
+        )
+        self.down3 = nn.AvgPool2d(2)
+        # Adjust Net for Encoder 3
+        self.mlp3 = nn.Sequential(
+            nn.GELU(),
+            nn.Linear(dim, 256)
+        )
+        self.adjust3 = adjust_net(256)
+
+        # Bottleneck Link
+        self.bott = nn.Sequential(
+            single_conv(256, 512),
+            single_conv(512, 512),
+            single_conv(512, 512),
+            single_conv(512, 512),
         )
 
         self.up1 = up(256)
