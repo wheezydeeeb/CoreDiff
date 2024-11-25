@@ -195,6 +195,7 @@ class UNet(nn.Module):
     def __init__(self, in_channels=2, out_channels=1):
         super(UNet, self).__init__()
 
+        # Time MLP Universal Block
         dim = 32
         self.time_mlp = nn.Sequential(
             SinusoidalPosEmb(dim),
@@ -203,29 +204,35 @@ class UNet(nn.Module):
             nn.Linear(dim * 4, dim)
         )
 
+        # Encoder Block 1
         self.inc = nn.Sequential(
             single_conv(in_channels, 64),
-            single_conv(64, 64)
         )
-
         self.down1 = nn.AvgPool2d(2)
+        
+        # Adjust Net for Encoder 1
         self.mlp1 = nn.Sequential(
             nn.GELU(),
             nn.Linear(dim, 64)
         )
         self.adjust1 = adjust_net(64)
+
+        # Encoder Block 2
         self.conv1 = nn.Sequential(
             single_conv(64, 128),
             single_conv(128, 128),
             single_conv(128, 128)
         )
-
         self.down2 = nn.AvgPool2d(2)
+
+        # Adjust Net for Encoder 2
         self.mlp2 = nn.Sequential(
             nn.GELU(),
             nn.Linear(dim, 128)
         )
         self.adjust2 = adjust_net(128)
+
+        # Bottleneck Link
         self.conv2 = nn.Sequential(
             single_conv(128, 256),
             single_conv(256, 256),
