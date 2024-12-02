@@ -90,112 +90,14 @@ class adjust_net(nn.Module):
         return out1, out2
 
 
-class res_fft_conv(nn.Module):
-    def __init__(self, in_channels):
-        super(res_fft_conv, self).__init__()
-        self.img_conv = nn.Conv2d(in_channels,   in_channels,   kernel_size=3, stride=1, padding=1)
-        self.fft_conv = nn.Conv2d(in_channels*2, in_channels*2, kernel_size=1, stride=1, padding=0)
-
-    def forward(self, x):
-
-        # Handling initial conv
-        x = self.img_conv(x)
-        x = F.gelu(x)
-
-        # Frequency domain
-        _, _, H, W = x.shape
-        fft = torch.fft.rfft2(x, s=(H, W), dim=(2, 3), norm='ortho')
-        fft = torch.cat([fft.real, fft.imag], dim=1)
-        fft = F.relu(self.fft_conv(fft))
-        fft_real, fft_imag = torch.chunk(fft, 2, dim=1)        
-        fft = torch.complex(fft_real, fft_imag)
-        fft = torch.fft.irfft2(fft, s=(H, W), dim=(2, 3), norm='ortho')
-
-        # Image domain  
-        x_conv = F.gelu(self.img_conv(x))
-
-        # Mixing (residual, image, fourier)
-        output = x_conv + fft
-        return output  
-
- # The architecture of U-Net refers to "Toward Convolutional Blind Denoising of Real Photographs",MATLAB implementation: https://github.com/GuoShi28/CBDNet.
+ # The architecture of U-Net refers to "Toward Convolutional Blind Denoising of Real Photographs",
+ # official MATLAB implementation: https://github.com/GuoShi28/CBDNet.
  # unofficial PyTorch implementation: https://github.com/IDKiro/CBDNet-pytorch/tree/master.
  # We improved it by adding time step embedding and EMM module, while removing the noise estimation network.
 class UNet(nn.Module):
-    # def __init__(self, in_channels=2, out_channels=1):
-    #     super(UNet, self).__init__()
-
-    #     dim = 32
-    #     self.time_mlp = nn.Sequential(
-    #         SinusoidalPosEmb(dim),
-    #         nn.Linear(dim, dim * 4),
-    #         nn.GELU(),
-    #         nn.Linear(dim * 4, dim)
-    #     )
-
-    #     self.inc = nn.Sequential(
-    #         single_conv(in_channels, 64),
-    #         single_conv(64, 64)
-    #     )
-
-    #     self.down1 = nn.AvgPool2d(2)
-    #     self.mlp1 = nn.Sequential(
-    #         nn.GELU(),
-    #         nn.Linear(dim, 64)
-    #     )
-    #     self.adjust1 = adjust_net(64)
-    #     self.conv1 = nn.Sequential(
-    #         single_conv(64, 128),
-    #         single_conv(128, 128),
-    #         single_conv(128, 128)
-    #     )
-
-    #     self.down2 = nn.AvgPool2d(2)
-    #     self.mlp2 = nn.Sequential(
-    #         nn.GELU(),
-    #         nn.Linear(dim, 128)
-    #     )
-    #     self.adjust2 = adjust_net(128)
-    #     self.conv2 = nn.Sequential(
-    #         single_conv(128, 256),
-    #         single_conv(256, 256),
-    #         single_conv(256, 256),
-    #         single_conv(256, 256),
-    #         single_conv(256, 256),
-    #         single_conv(256, 256)
-    #     )
-
-    #     self.up1 = up(256)
-    #     self.mlp3 = nn.Sequential(
-    #         nn.GELU(),
-    #         nn.Linear(dim, 128)
-    #     )
-    #     self.adjust3 = adjust_net(128)
-    #     self.conv3 = nn.Sequential(
-    #         single_conv(128, 128),
-    #         single_conv(128, 128),
-    #         single_conv(128, 128)
-    #     )
-
-    #     self.up2 = up(128)
-    #     self.mlp4 = nn.Sequential(
-    #         nn.GELU(),
-    #         nn.Linear(dim, 64)
-    #     )
-    #     self.adjust4 = adjust_net(64)
-    #     self.conv4 = nn.Sequential(
-    #         single_conv(64, 64),
-    #         single_conv(64, 64)
-    #     )
-
-    #     self.gelu = nn.GELU()
-
-    #     self.outc = outconv(64, out_channels)
-
     def __init__(self, in_channels=2, out_channels=1):
         super(UNet, self).__init__()
 
-        # Time MLP Universal Block
         dim = 32
         self.time_mlp = nn.Sequential(
             SinusoidalPosEmb(dim),
@@ -204,51 +106,36 @@ class UNet(nn.Module):
             nn.Linear(dim * 4, dim)
         )
 
-        # Encoder Block 1
-        self.enc1 = nn.Sequential(
-            single_conv(in_channels, 64)
+        self.inc = nn.Sequential(
+            single_conv(in_channels, 64),
+            single_conv(64, 64)
         )
+
         self.down1 = nn.AvgPool2d(2)
-        # Adjust Net for Encoder 1
         self.mlp1 = nn.Sequential(
             nn.GELU(),
             nn.Linear(dim, 64)
         )
         self.adjust1 = adjust_net(64)
-
-        # Encoder Block 2
-        self.enc2 = nn.Sequential(
+        self.conv1 = nn.Sequential(
             single_conv(64, 128),
+            single_conv(128, 128),
             single_conv(128, 128)
         )
+
         self.down2 = nn.AvgPool2d(2)
-        # Adjust Net for Encoder 2
         self.mlp2 = nn.Sequential(
             nn.GELU(),
             nn.Linear(dim, 128)
         )
         self.adjust2 = adjust_net(128)
-
-        # Encoder Block 3
-        self.enc3 = nn.Sequential(
+        self.conv2 = nn.Sequential(
             single_conv(128, 256),
             single_conv(256, 256),
+            single_conv(256, 256),
+            single_conv(256, 256),
+            single_conv(256, 256),
             single_conv(256, 256)
-        )
-        self.down3 = nn.AvgPool2d(2)
-        # Adjust Net for Encoder 3
-        self.mlp3 = nn.Sequential(
-            nn.GELU(),
-            nn.Linear(dim, 256)
-        )
-        self.adjust3 = adjust_net(256)
-
-        # Bottleneck Link
-        self.bott = nn.Sequential(
-            single_conv(256, 512),
-            single_conv(512, 512),
-            single_conv(512, 512),
-            single_conv(512, 512),
         )
 
         self.up1 = up(256)
@@ -274,27 +161,11 @@ class UNet(nn.Module):
             single_conv(64, 64)
         )
 
-        self.gelu = nn.GELU()
-
-        self.outc = nn.Sequential(
-            single_conv(64, 64),
-            outconv(64, out_channels)
-        )
-
-        self.resfftconv64 = res_fft_conv(64)
-        self.resfftconv128 = res_fft_conv(128) 
+        self.outc = outconv(64, out_channels)
 
     def forward(self, x, t, x_adjust, adjust):
         inx = self.inc(x)
         time_emb = self.time_mlp(t)
-        
-        residual_x = x[:, 1].unsqueeze(1)
-
-        # resfftconv Block 1
-        res_inx = self.resfftconv64(inx)
-
-        # Encoder Block 1
-        # Downsample, adjust then increase channels in order
         down1 = self.down1(inx)
         condition1 = self.mlp1(time_emb)
         b, c = condition1.shape
@@ -305,10 +176,7 @@ class UNet(nn.Module):
         else:
             down1 = down1 + condition1
         conv1 = self.conv1(down1)
-        # resfftconv Block 2
-        conv1 = self.resfftconv128(conv1)
-        
-        # Encoder Block 2
+
         down2 = self.down2(conv1)
         condition2 = self.mlp2(time_emb)
         b, c = condition2.shape
@@ -320,8 +188,6 @@ class UNet(nn.Module):
             down2 = down2 + condition2
         conv2 = self.conv2(down2)
 
-        # Decoder Block 1
-        # Upsample, increase channels then adjust in order 
         up1 = self.up1(conv2, conv1)
         condition3 = self.mlp3(time_emb)
         b, c = condition3.shape
@@ -331,11 +197,9 @@ class UNet(nn.Module):
             up1 = up1 + gamma3 * condition3 + beta3
         else:
             up1 = up1 + condition3
-        up1 = self.resfftconv128(up1)
         conv3 = self.conv3(up1)
 
-        # Decoder Block 2
-        up2 = self.up2(conv3, res_inx)
+        up2 = self.up2(conv3, inx)
         condition4 = self.mlp4(time_emb)
         b, c = condition4.shape
         condition4 = rearrange(condition4, 'b c -> b c 1 1')
@@ -344,81 +208,10 @@ class UNet(nn.Module):
             up2 = up2 + gamma4 * condition4 + beta4
         else:
             up2 = up2 + condition4
-        up2 = self.resfftconv64(up2)
         conv4 = self.conv4(up2)
 
-        # Output conv
         out = self.outc(conv4)
-
-        # residual_x connection with GELU
-        # out = self.gelu(out + residual_x)
-        out = out + residual_x
         return out
-
-    # def forward(self, x, t, x_adjust, adjust):
-    #     inx = self.inc(x)
-    #     time_emb = self.time_mlp(t)
-    #     residual_x = 0
-    #     if not adjust:
-    #         residual_x = x[:, 1].unsqueeze(1)
-
-    #     # Encoder
-    #     down1 = self.down1(inx)
-
-    #     condition1 = self.mlp1(time_emb)
-    #     b, c = condition1.shape
-    #     condition1 = rearrange(condition1, 'b c -> b c 1 1')
-    #     if adjust:
-    #         gamma1, beta1 = self.adjust1(x_adjust)
-    #         down1 = down1 + gamma1 * condition1 + beta1
-    #     else:
-    #         down1 = down1 + condition1
-    #     conv1 = self.conv1(down1)
-        
-    #     down2 = self.down2(conv1)
-        
-    #     condition2 = self.mlp2(time_emb)
-    #     b, c = condition2.shape
-    #     condition2 = rearrange(condition2, 'b c -> b c 1 1')
-    #     if adjust:
-    #         gamma2, beta2 = self.adjust2(x_adjust)
-    #         down2 = down2 + gamma2 * condition2 + beta2
-    #     else:
-    #         down2 = down2 + condition2
-    #     conv2 = self.conv2(down2)
-
-    #     # Decoder 
-    #     up1 = self.up1(conv2, conv1)
-        
-    #     condition3 = self.mlp3(time_emb)
-    #     b, c = condition3.shape
-    #     condition3 = rearrange(condition3, 'b c -> b c 1 1')
-    #     if adjust:
-    #         gamma3, beta3 = self.adjust3(x_adjust)
-    #         up1 = up1 + gamma3 * condition3 + beta3
-    #     else:
-    #         up1 = up1 + condition3
-    #     conv3 = self.conv3(up1)
-
-    #     up2 = self.up2(conv3, inx)
-        
-    #     condition4 = self.mlp4(time_emb)
-    #     b, c = condition4.shape
-    #     condition4 = rearrange(condition4, 'b c -> b c 1 1')
-    #     if adjust:
-    #         gamma4, beta4 = self.adjust4(x_adjust)
-    #         up2 = up2 + gamma4 * condition4 + beta4
-    #     else:
-    #         up2 = up2 + condition4
-    #     conv4 = self.conv4(up2)
-
-    #     # Output conv
-    #     out = self.outc(conv4)
-
-    #     # residual_x connection with GELU
-    #     # out = self.gelu(out + residual_x)
-    #     out = self.gelu(out + residual_x)
-    #     return out
 
 
 class Network(nn.Module):
